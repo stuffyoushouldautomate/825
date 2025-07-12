@@ -1,5 +1,6 @@
 import AppSidebar from '@/components/app-sidebar'
 import ArtifactRoot from '@/components/artifact/artifact-root'
+import CommandPalette from '@/components/command-palette'
 import Header from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 import { SidebarProvider } from '@/components/ui/sidebar'
@@ -74,6 +75,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <CommandPalette />
           <SidebarProvider defaultOpen>
             <AppSidebar />
             <div className="flex flex-col flex-1">

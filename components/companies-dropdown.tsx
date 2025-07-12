@@ -7,20 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { createClient } from '@/lib/supabase/client'
+import { getActiveCompanies, type Company } from '@/lib/actions/companies'
 import { Building2, ChevronDown, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-
-interface Company {
-  id: string
-  name: string
-  description?: string
-  industry?: string
-  priority?: number
-  is_active?: boolean
-  status?: string
-}
 
 export function CompaniesDropdown() {
   const [companies, setCompanies] = useState<Company[]>([])
@@ -32,47 +22,12 @@ export function CompaniesDropdown() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        // Debug environment variables
-        console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-        console.log(
-          'Supabase Key exists:',
-          !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        )
+        console.log('Fetching companies using server action...')
 
-        const supabase = createClient()
-        console.log('Fetching companies from Supabase...')
+        const companiesData = await getActiveCompanies()
+        console.log('Companies fetched:', companiesData.length)
 
-        // First, let's check if we can connect and see what's in the table
-        const { data: allData, error: allError } = await supabase
-          .from('main_companies')
-          .select('*')
-          .limit(5)
-
-        console.log('All companies data:', allData)
-        console.log('All companies error:', allError)
-
-        // Try a simpler query without the is_active filter first
-        const { data, error } = await supabase
-          .from('main_companies')
-          .select(
-            'id, name, description, industry, priority, is_active, status'
-          )
-          .order('name')
-          .limit(20)
-
-        console.log('Simple companies data:', data)
-        console.log('Simple companies error:', error)
-
-        if (error) {
-          console.error('Error fetching companies:', error)
-          setError(error.message)
-        } else {
-          // Filter active companies on the client side for now
-          const activeCompanies =
-            data?.filter(company => company.is_active !== false) || []
-          setCompanies(activeCompanies)
-          console.log('Active companies set:', activeCompanies.length)
-        }
+        setCompanies(companiesData)
       } catch (error) {
         console.error('Error fetching companies:', error)
         setError(error instanceof Error ? error.message : 'Unknown error')

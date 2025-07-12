@@ -1,16 +1,27 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import {
+  createCompanyReport,
+  getCompanyReports,
+  type CompanyReport
+} from '@/lib/actions/reports'
 import { FileSearch } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { GenerateCompanyReportModal } from './generate-company-report-modal'
+import { ReportGenerationLoading } from './report-generation-loading'
+import { ReportSidebar } from './report-sidebar'
 
 export function GenerateCompanyReport() {
   const [open, setOpen] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [currentReport, setCurrentReport] = useState<CompanyReport | null>(null)
+  const [showReportSidebar, setShowReportSidebar] = useState(false)
   const router = useRouter()
 
-  // The prompt template
+  // The prompt template for comprehensive company analysis
   const getPrompt = (
     companyName: string
   ) => `Generate a comprehensive company report for union organizing research on ${companyName}. Use these sources and structure:
@@ -40,17 +51,119 @@ REPORT STRUCTURE (13 sections):
 Provide comprehensive factual analysis with strategic insights. Use markdown formatting with clear headings.`
 
   // Handle generating a new report
-  const handleGenerate = (companyName: string) => {
-    const prompt = getPrompt(companyName)
-    router.push(`/search?q=${encodeURIComponent(prompt)}`)
+  const handleGenerate = async (companyName: string) => {
+    setIsGenerating(true)
+    setOpen(false)
+
+    try {
+      // Create report in database
+      const result = await createCompanyReport({
+        companyName,
+        reportTitle: `Company Analysis: ${companyName}`,
+        reportType: 'company_analysis'
+      })
+
+      if (!result.success || !result.reportId) {
+        throw new Error(result.error || 'Failed to create report')
+      }
+
+      // Show loading screen
+      setCurrentReport({
+        id: result.reportId,
+        user_id: '',
+        company_name: companyName,
+        report_title: `Company Analysis: ${companyName}`,
+        report_content: '',
+        report_summary: '',
+        status: 'processing',
+        report_type: 'company_analysis',
+        metadata: {},
+        processing_started_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+      // Navigate to search with the comprehensive prompt
+      const prompt = getPrompt(companyName)
+      router.push(
+        `/search?q=${encodeURIComponent(prompt)}&reportId=${result.reportId}`
+      )
+    } catch (error) {
+      console.error('Error generating report:', error)
+      toast.error('Failed to generate report. Please try again.')
+      setIsGenerating(false)
+    }
   }
 
-  // Handle viewing an existing report (for now, just show in a new tab or alert)
-  const handleViewReport = (companyName: string, report: string) => {
-    // For now, just open a new tab with the report content as a data URL
-    const blob = new Blob([report], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
+  // Handle loading screen completion
+  const handleLoadingComplete = async (reportId: string) => {
+    setIsGenerating(false)
+
+    // Fetch the completed report
+    const reportsResult = await getCompanyReports()
+    if (reportsResult.success && reportsResult.reports) {
+      const completedReport = reportsResult.reports.find(r => r.id === reportId)
+      if (completedReport) {
+        setCurrentReport(completedReport)
+        setShowReportSidebar(true)
+      }
+    }
+  }
+
+  // Handle asking follow-up questions
+  const handleAskQuestion = (question: string) => {
+    const reportContext = currentReport
+      ? `Based on the ${currentReport.company_name} report: `
+      : ''
+    const fullQuestion = reportContext + question
+    router.push(`/search?q=${encodeURIComponent(fullQuestion)}`)
+  }
+
+  // Handle downloading report
+  const handleDownload = (reportId: string) => {
+    // TODO: Implement PDF generation and download
+    toast.info('PDF download feature coming soon!')
+  }
+
+  // Handle viewing an existing report
+  const handleViewReport = async (
+    companyName: string,
+    reportContent: string
+  ) => {
+    try {
+      const reportsResult = await getCompanyReports()
+      if (reportsResult.success && reportsResult.reports) {
+        const existingReport = reportsResult.reports.find(
+          r => r.company_name.toLowerCase() === companyName.toLowerCase()
+        )
+        if (existingReport) {
+          setCurrentReport(existingReport)
+          setShowReportSidebar(true)
+          return
+        }
+      }
+
+      // If no existing report found, create a mock one for viewing
+      setCurrentReport({
+        id: `view_${Date.now()}`,
+        user_id: '',
+        company_name: companyName,
+        report_title: `Company Analysis: ${companyName}`,
+        report_content: reportContent,
+        report_summary: 'Report content available for viewing',
+        status: 'completed',
+        report_type: 'company_analysis',
+        metadata: {},
+        processing_started_at: new Date().toISOString(),
+        processing_completed_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      setShowReportSidebar(true)
+    } catch (error) {
+      console.error('Error viewing report:', error)
+      toast.error('Failed to load report')
+    }
   }
 
   return (
@@ -63,11 +176,33 @@ Provide comprehensive factual analysis with strategic insights. Use markdown for
         <FileSearch className="size-4 mr-2" />
         <span>Generate Company Report</span>
       </Button>
+
       <GenerateCompanyReportModal
         open={open}
         onOpenChange={setOpen}
         onGenerate={handleGenerate}
         onViewReport={handleViewReport}
+      />
+
+      {/* Loading Screen */}
+      {isGenerating && currentReport && (
+        <ReportGenerationLoading
+          companyName={currentReport.company_name}
+          onCancel={() => {
+            setIsGenerating(false)
+            setCurrentReport(null)
+          }}
+          onComplete={handleLoadingComplete}
+        />
+      )}
+
+      {/* Report Sidebar */}
+      <ReportSidebar
+        report={currentReport}
+        isOpen={showReportSidebar}
+        onClose={() => setShowReportSidebar(false)}
+        onAskQuestion={handleAskQuestion}
+        onDownload={handleDownload}
       />
     </>
   )

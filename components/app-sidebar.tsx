@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Sidebar,
   SidebarContent,
@@ -8,16 +10,19 @@ import {
   SidebarRail,
   SidebarTrigger
 } from '@/components/ui/sidebar'
+import { type CompanyReport } from '@/lib/actions/reports'
 import { Building2, FileText, Plus, Shield, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Suspense, memo } from 'react'
+import { Suspense, memo, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { CompaniesDropdown } from './companies-dropdown'
 import { GenerateCompanyReport } from './generate-company-report'
+import { ReportSidebar } from './report-sidebar'
 import { ChatHistorySection } from './sidebar/chat-history-section'
 import { ChatHistorySkeleton } from './sidebar/chat-history-skeleton'
 import { SidebarPerformanceMonitor } from './sidebar/performance-monitor'
+import { ReportHistorySection } from './sidebar/report-history-section'
 
 // Memoized quick research links to prevent unnecessary re-renders
 const QuickResearchLinks = memo(() => {
@@ -95,6 +100,29 @@ const SidebarSectionSkeleton = () => (
 )
 
 export default function AppSidebar() {
+  const [selectedReport, setSelectedReport] = useState<CompanyReport | null>(
+    null
+  )
+  const [showReportSidebar, setShowReportSidebar] = useState(false)
+
+  const handleReportSelect = (report: CompanyReport) => {
+    setSelectedReport(report)
+    setShowReportSidebar(true)
+  }
+
+  const handleAskQuestion = (question: string) => {
+    const reportContext = selectedReport
+      ? `Based on the ${selectedReport.company_name} report: `
+      : ''
+    const fullQuestion = reportContext + question
+    window.open(`/search?q=${encodeURIComponent(fullQuestion)}`, '_blank')
+  }
+
+  const handleDownload = (reportId: string) => {
+    // TODO: Implement PDF generation and download
+    console.log('Download report:', reportId)
+  }
+
   return (
     <>
       <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
@@ -148,6 +176,15 @@ export default function AppSidebar() {
           {/* Quick Research Categories - Memoized */}
           <QuickResearchLinks />
 
+          {/* Report History Section */}
+          <div className="flex-1 overflow-y-auto">
+            <SidebarErrorBoundary>
+              <Suspense fallback={<ChatHistorySkeleton />}>
+                <ReportHistorySection onSelectReport={handleReportSelect} />
+              </Suspense>
+            </SidebarErrorBoundary>
+          </div>
+
           {/* Chat History with Error Boundary */}
           <div className="flex-1 overflow-y-auto">
             <SidebarErrorBoundary>
@@ -159,6 +196,15 @@ export default function AppSidebar() {
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
+
+      {/* Report Sidebar */}
+      <ReportSidebar
+        report={selectedReport}
+        isOpen={showReportSidebar}
+        onClose={() => setShowReportSidebar(false)}
+        onAskQuestion={handleAskQuestion}
+        onDownload={handleDownload}
+      />
 
       {/* Performance Monitor (development only) */}
       <SidebarPerformanceMonitor />

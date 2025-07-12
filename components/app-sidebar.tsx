@@ -90,7 +90,7 @@ export default function AppSidebar() {
               className="flex items-center gap-2 p-2 text-sm rounded-md hover:bg-accent"
             >
               <Building2 className="size-4" />
-              <span>Company Analysis</span>
+              <span>Generate Company Report</span>
             </Link>
           </div>
         </div>

@@ -3,20 +3,20 @@ import { ArrowRight } from 'lucide-react'
 
 const exampleMessages = [
   {
-    heading: 'Research OSHA violations for ABC Construction',
-    message: 'Research OSHA violations for ABC Construction'
+    heading: 'Research OSHA violations for Earle Construction',
+    message: 'Research OSHA violations for Earle Construction'
   },
   {
-    heading: 'Find NLRB cases involving XYZ Contractors',
-    message: 'Find NLRB cases involving XYZ Contractors'
+    heading: 'Find NLRB cases involving Esposito Construction in New Jersey',
+    message: 'Find NLRB cases involving Esposito Construction in New Jersey'
   },
   {
-    heading: 'Analyze government contracts for Smith & Sons',
-    message: 'Analyze government contracts for Smith & Sons'
+    heading: 'Analyze government contracts for Boyce Excavating',
+    message: 'Analyze government contracts for Boyce Excavatings'
   },
   {
-    heading: 'Research union status of Johnson Builders',
-    message: 'Research union status of Johnson Builders'
+    heading: 'Research union status of Insituform in New Jersey',
+    message: 'Research union status of Insituform in New Jersey'
   }
 ]
 export function EmptyScreen({

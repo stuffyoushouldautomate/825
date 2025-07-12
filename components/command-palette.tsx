@@ -1,27 +1,37 @@
-"use client"
+'use client'
 
 import {
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
   CommandSeparator
-} from "@/components/ui/command"
+} from '@/components/ui/command'
 import { getActiveCompanies, type Company } from '@/lib/actions/companies'
+import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
-import { useSession } from '@supabase/auth-helpers-react'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function CommandPalette() {
   const [open, setOpen] = useState(false)
   const [companies, setCompanies] = useState<Company[]>([])
   const [recent, setRecent] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
   const router = useRouter()
-  const session = useSession()
-  const userId = session?.user?.id
+
+  // Get current user session
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data, error } = await createClient().auth.getSession()
+      if (!error && data.session) {
+        setUserId(data.session.user.id)
+      }
+    }
+    fetchUser()
+  }, [])
 
   // Keyboard shortcut handler
   useEffect(() => {
@@ -37,7 +47,9 @@ export default function CommandPalette() {
 
   // Fetch companies
   useEffect(() => {
-    getActiveCompanies().then(setCompanies).finally(() => setLoading(false))
+    getActiveCompanies()
+      .then(setCompanies)
+      .finally(() => setLoading(false))
   }, [])
 
   // Fetch user-specific recent searches from localStorage (or Supabase if you want DB persistence)
@@ -91,10 +103,14 @@ export default function CommandPalette() {
               <CommandItem key={c.id} onSelect={() => handleSelect(c.name)}>
                 {c.name}
                 {c.priority && (
-                  <span className="ml-2 text-xs text-muted-foreground">P{c.priority}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    P{c.priority}
+                  </span>
                 )}
                 {c.status && (
-                  <span className="ml-2 text-xs text-muted-foreground">{c.status}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {c.status}
+                  </span>
                 )}
               </CommandItem>
             ))
@@ -103,4 +119,4 @@ export default function CommandPalette() {
       </CommandList>
     </CommandDialog>
   )
-} 
+}

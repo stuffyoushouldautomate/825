@@ -26,6 +26,9 @@ Local 825's AI-powered construction industry research and analysis platform.
 - Multiple search providers support (Tavily, SearXNG, Exa)
 - Model selection from UI (switch between available AI models)
   - Reasoning models with visible thought process
+- Company report generation and management system
+- Dynamic sidebar with report history and live clock
+- Data integrity validation (all users have profile records)
 
 ### Construction Industry Focus
 

@@ -56,7 +56,13 @@ export async function createCompanyReport(
     }
 
     return { success: true, reportId: data.id }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'User not authenticated') {
+      return {
+        success: false,
+        error: 'You must be logged in to create a report.'
+      }
+    }
     console.error('Error creating company report:', error)
     return { success: false, error: 'Failed to create report' }
   }
@@ -110,7 +116,10 @@ export async function getCompanyReports(): Promise<{
     }
 
     return { success: true, reports: data || [] }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'User not authenticated') {
+      return { success: false, error: 'You must be logged in to view reports.' }
+    }
     console.error('Error fetching company reports:', error)
     return { success: false, error: 'Failed to fetch reports' }
   }
@@ -136,7 +145,13 @@ export async function getCompanyReport(
     }
 
     return { success: true, report: data }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'User not authenticated') {
+      return {
+        success: false,
+        error: 'You must be logged in to view this report.'
+      }
+    }
     console.error('Error fetching company report:', error)
     return { success: false, error: 'Failed to fetch report' }
   }
@@ -161,7 +176,13 @@ export async function deleteCompanyReport(
     }
 
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'User not authenticated') {
+      return {
+        success: false,
+        error: 'You must be logged in to delete this report.'
+      }
+    }
     console.error('Error deleting company report:', error)
     return { success: false, error: 'Failed to delete report' }
   }
@@ -235,7 +256,13 @@ export async function createReportConversation(
     }
 
     return { success: true, conversationId: data.id }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'User not authenticated') {
+      return {
+        success: false,
+        error: 'You must be logged in to create a conversation.'
+      }
+    }
     console.error('Error creating report conversation:', error)
     return { success: false, error: 'Failed to create conversation' }
   }

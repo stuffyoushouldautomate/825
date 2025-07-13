@@ -14,5 +14,8 @@ export async function getCurrentUser() {
 
 export async function getCurrentUserId() {
   const user = await getCurrentUser()
-  return user?.id ?? 'anonymous'
+  if (!user?.id) {
+    throw new Error('User not authenticated')
+  }
+  return user.id
 }

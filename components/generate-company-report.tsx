@@ -64,7 +64,13 @@ Provide comprehensive factual analysis with strategic insights. Use markdown for
       })
 
       if (!result.success || !result.reportId) {
-        throw new Error(result.error || 'Failed to create report')
+        if (result.error === 'You must be logged in to create a report.') {
+          toast.error('You must be logged in to generate a report.')
+        } else {
+          toast.error(result.error || 'Failed to create report')
+        }
+        setIsGenerating(false)
+        return
       }
 
       // Show loading screen
@@ -107,6 +113,10 @@ Provide comprehensive factual analysis with strategic insights. Use markdown for
         setCurrentReport(completedReport)
         setShowReportSidebar(true)
       }
+    } else if (
+      reportsResult.error === 'You must be logged in to view reports.'
+    ) {
+      toast.error('You must be logged in to view reports.')
     }
   }
 

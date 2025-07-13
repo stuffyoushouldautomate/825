@@ -36,7 +36,11 @@ export function ReportHistorySection({
       if (result.success && result.reports) {
         setReports(result.reports)
       } else {
-        setError(result.error || 'Failed to load reports')
+        if (result.error === 'You must be logged in to view reports.') {
+          setError('You must be logged in to view your report history.')
+        } else {
+          setError(result.error || 'Failed to load reports')
+        }
       }
     } catch (error) {
       console.error('Error fetching reports:', error)
@@ -125,9 +129,7 @@ export function ReportHistorySection({
         <SidebarGroup>
           <SidebarGroupLabel>Report History</SidebarGroupLabel>
         </SidebarGroup>
-        <div className="p-2 text-xs text-muted-foreground">
-          Failed to load reports
-        </div>
+        <div className="p-2 text-xs text-muted-foreground">{error}</div>
       </div>
     )
   }

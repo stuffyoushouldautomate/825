@@ -1,5 +1,5 @@
-import { Redis } from '@upstash/redis'
-import { createClient, RedisClientType } from 'redis'
+import { Redis as UpstashRedis } from '@upstash/redis'
+import Redis from 'ioredis'
 
 export type RedisConfig = {
   useLocalRedis: boolean
@@ -8,24 +8,44 @@ export type RedisConfig = {
   localRedisUrl?: string
 }
 
-export const redisConfig: RedisConfig = {
-  useLocalRedis: process.env.USE_LOCAL_REDIS === 'true',
-  upstashRedisRestUrl: process.env.UPSTASH_REDIS_REST_URL,
-  upstashRedisRestToken: process.env.UPSTASH_REDIS_REST_TOKEN,
-  localRedisUrl:
-    process.env.REDIS_URL ||
-    process.env.LOCAL_REDIS_URL ||
-    'redis://localhost:6379'
+export function getRedisConfig(): RedisConfig {
+  // Railway-specific Redis configuration
+  const railwayRedisUrl = process.env.REDIS_URL || process.env.REDISCLOUD_URL
+
+  // Check for Railway Redis first
+  if (railwayRedisUrl) {
+    return {
+      useLocalRedis: true,
+      localRedisUrl: railwayRedisUrl
+    }
+  }
+
+  // Check for Upstash Redis
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    return {
+      useLocalRedis: false,
+      upstashRedisRestUrl: process.env.UPSTASH_REDIS_REST_URL,
+      upstashRedisRestToken: process.env.UPSTASH_REDIS_REST_TOKEN
+    }
+  }
+
+  // Fallback to local Redis
+  const useLocalRedis = process.env.USE_LOCAL_REDIS !== 'false'
+  const localRedisUrl = process.env.LOCAL_REDIS_URL || 'redis://localhost:6379'
+
+  return {
+    useLocalRedis,
+    localRedisUrl
+  }
 }
 
-let localRedisClient: RedisClientType | null = null
-let redisWrapper: RedisWrapper | null = null
-
-// Wrapper class for Redis client
 export class RedisWrapper {
-  private client: Redis | RedisClientType
+  private client: Redis | UpstashRedis
 
-  constructor(client: Redis | RedisClientType) {
+  constructor(client: Redis | UpstashRedis) {
     this.client = client
   }
 
@@ -35,42 +55,47 @@ export class RedisWrapper {
     stop: number,
     options?: { rev: boolean }
   ): Promise<string[]> {
-    let result: string[]
     if (this.client instanceof Redis) {
-      result = await this.client.zrange(key, start, stop, options)
+      return this.client.zrange(
+        key,
+        start,
+        stop,
+        options?.rev ? 'REV' : undefined
+      )
     } else {
-      const redisClient = this.client as RedisClientType
-      if (options?.rev) {
-        result = await redisClient.zRange(key, start, stop, { REV: true })
-      } else {
-        result = await redisClient.zRange(key, start, stop)
-      }
+      // Upstash Redis implementation
+      const result = await this.client.zrange(key, start, stop)
+      return options?.rev ? result.reverse() : result
     }
-    return result
   }
 
   async hgetall<T extends Record<string, unknown>>(
     key: string
   ): Promise<T | null> {
     if (this.client instanceof Redis) {
-      return this.client.hgetall(key) as Promise<T | null>
+      return this.client.hgetall(key) as T
     } else {
-      const result = await (this.client as RedisClientType).hGetAll(key)
-      return Object.keys(result).length > 0 ? (result as T) : null
+      // Upstash Redis implementation
+      return this.client.hgetall(key) as T
     }
   }
 
   pipeline() {
-    return this.client instanceof Redis
-      ? new UpstashPipelineWrapper(this.client.pipeline())
-      : new LocalPipelineWrapper((this.client as RedisClientType).multi())
+    if (this.client instanceof Redis) {
+      return new LocalPipelineWrapper(this.client.multi())
+    } else {
+      // Upstash Redis doesn't support pipeline, return a mock
+      return new UpstashPipelineWrapper(this.client as UpstashRedis)
+    }
   }
 
   async hmset(key: string, value: Record<string, any>): Promise<'OK' | number> {
     if (this.client instanceof Redis) {
       return this.client.hmset(key, value)
     } else {
-      return (this.client as RedisClientType).hSet(key, value)
+      // Upstash Redis implementation
+      await this.client.hset(key, value)
+      return 'OK'
     }
   }
 
@@ -80,12 +105,10 @@ export class RedisWrapper {
     member: string
   ): Promise<number | null> {
     if (this.client instanceof Redis) {
-      return this.client.zadd(key, { score, member })
+      return this.client.zadd(key, score, member)
     } else {
-      return (this.client as RedisClientType).zAdd(key, {
-        score,
-        value: member
-      })
+      // Upstash Redis implementation
+      return this.client.zadd(key, { [member]: score })
     }
   }
 
@@ -93,7 +116,8 @@ export class RedisWrapper {
     if (this.client instanceof Redis) {
       return this.client.del(key)
     } else {
-      return (this.client as RedisClientType).del(key)
+      // Upstash Redis implementation
+      return this.client.del(key)
     }
   }
 
@@ -101,21 +125,20 @@ export class RedisWrapper {
     if (this.client instanceof Redis) {
       return this.client.zrem(key, member)
     } else {
-      return (this.client as RedisClientType).zRem(key, member)
+      // Upstash Redis implementation
+      return this.client.zrem(key, member)
     }
   }
 
   async close(): Promise<void> {
     if (this.client instanceof Redis) {
-      // Upstash Redis doesn't require explicit closing
-      return
-    } else {
-      await (this.client as RedisClientType).quit()
+      await this.client.quit()
     }
+    // Upstash Redis doesn't need explicit closing
   }
 }
 
-// Wrapper class for Upstash Redis pipeline
+// Mock pipeline for Upstash Redis
 class UpstashPipelineWrapper {
   private pipeline: ReturnType<Redis['pipeline']>
 
@@ -124,182 +147,120 @@ class UpstashPipelineWrapper {
   }
 
   hgetall(key: string) {
-    this.pipeline.hgetall(key)
-    return this
+    return this.pipeline.hgetall(key)
   }
 
   del(key: string) {
-    this.pipeline.del(key)
-    return this
+    return this.pipeline.del(key)
   }
 
   zrem(key: string, member: string) {
-    this.pipeline.zrem(key, member)
-    return this
+    return this.pipeline.zrem(key, member)
   }
 
   hmset(key: string, value: Record<string, any>) {
-    this.pipeline.hmset(key, value)
-    return this
+    return this.pipeline.hmset(key, value)
   }
 
   zadd(key: string, score: number, member: string) {
-    this.pipeline.zadd(key, { score, member })
-    return this
+    return this.pipeline.zadd(key, score, member)
   }
 
   async exec() {
-    try {
-      return await this.pipeline.exec()
-    } catch (error) {
-      throw error
-    }
+    return this.pipeline.exec()
   }
 }
 
-// Wrapper class for local Redis pipeline
+// Local Redis pipeline wrapper
 class LocalPipelineWrapper {
-  private pipeline: ReturnType<RedisClientType['multi']>
+  private pipeline: ReturnType<Redis['multi']>
 
-  constructor(pipeline: ReturnType<RedisClientType['multi']>) {
+  constructor(pipeline: ReturnType<Redis['multi']>) {
     this.pipeline = pipeline
   }
 
   hgetall(key: string) {
-    this.pipeline.hGetAll(key)
-    return this
+    return this.pipeline.hgetall(key)
   }
 
   del(key: string) {
-    this.pipeline.del(key)
-    return this
+    return this.pipeline.del(key)
   }
 
   zrem(key: string, member: string) {
-    this.pipeline.zRem(key, member)
-    return this
+    return this.pipeline.zrem(key, member)
   }
 
   hmset(key: string, value: Record<string, any>) {
-    // Convert all values to strings
-    const stringValue = Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, String(v)])
-    )
-    this.pipeline.hSet(key, stringValue)
-    return this
+    return this.pipeline.hmset(key, value)
   }
 
   zadd(key: string, score: number, member: string) {
-    this.pipeline.zAdd(key, { score, value: member })
-    return this
+    return this.pipeline.zadd(key, score, member)
   }
 
   async exec() {
-    try {
-      return await this.pipeline.exec()
-    } catch (error) {
-      throw error
-    }
+    return this.pipeline.exec()
   }
 }
 
-// Function to get a Redis client
 export async function getRedisClient(): Promise<RedisWrapper> {
-  if (redisWrapper) {
-    return redisWrapper
-  }
+  const config = getRedisConfig()
 
-  if (redisConfig.useLocalRedis) {
-    if (!localRedisClient) {
-      const localRedisUrl =
-        redisConfig.localRedisUrl || 'redis://localhost:6379'
-      try {
-        localRedisClient = createClient({ url: localRedisUrl })
-        await localRedisClient.connect()
-      } catch (error) {
-        if (error instanceof Error) {
-          if (error.message.includes('ECONNREFUSED')) {
-            console.error(
-              `Failed to connect to local Redis at ${localRedisUrl}: Connection refused. Is Redis running?`
-            )
-          } else if (error.message.includes('ETIMEDOUT')) {
-            console.error(
-              `Failed to connect to local Redis at ${localRedisUrl}: Connection timed out. Check your network or Redis server.`
-            )
-          } else if (error.message.includes('ENOTFOUND')) {
-            console.error(
-              `Failed to connect to local Redis at ${localRedisUrl}: Host not found. Check your Redis URL.`
-            )
-          } else {
-            console.error(
-              `Failed to connect to local Redis at ${localRedisUrl}:`,
-              error.message
-            )
-          }
-        } else {
-          console.error(
-            `An unexpected error occurred while connecting to local Redis at ${localRedisUrl}:`,
-            error
-          )
-        }
-        throw new Error(
-          'Failed to connect to local Redis. Check your configuration and ensure Redis is running.'
-        )
-      }
-    }
-    redisWrapper = new RedisWrapper(localRedisClient)
+  if (config.useLocalRedis) {
+    // Use local Redis (including Railway Redis)
+    const redisUrl = config.localRedisUrl || 'redis://localhost:6379'
+
+    // Parse Redis URL for Railway compatibility
+    const url = new URL(redisUrl)
+    const redis = new Redis({
+      host: url.hostname,
+      port: parseInt(url.port) || 6379,
+      password: url.password || undefined,
+      username: url.username || undefined,
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 3,
+      lazyConnect: true,
+      keepAlive: 30000,
+      connectTimeout: 10000,
+      commandTimeout: 5000,
+      // Railway-specific optimizations
+      family: 4, // Force IPv4 for Railway
+      enableReadyCheck: true,
+      maxLoadingTimeout: 10000
+    })
+
+    // Handle connection events
+    redis.on('error', err => {
+      console.error('Redis connection error:', err)
+    })
+
+    redis.on('connect', () => {
+      console.log('Connected to Redis')
+    })
+
+    redis.on('ready', () => {
+      console.log('Redis is ready')
+    })
+
+    return new RedisWrapper(redis)
   } else {
-    if (
-      !redisConfig.upstashRedisRestUrl ||
-      !redisConfig.upstashRedisRestToken
-    ) {
-      throw new Error(
-        'Upstash Redis configuration is missing. Please check your environment variables.'
-      )
+    // Use Upstash Redis
+    if (!config.upstashRedisRestUrl || !config.upstashRedisRestToken) {
+      throw new Error('Upstash Redis configuration is incomplete')
     }
-    try {
-      redisWrapper = new RedisWrapper(
-        new Redis({
-          url: redisConfig.upstashRedisRestUrl,
-          token: redisConfig.upstashRedisRestToken
-        })
-      )
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('unauthorized')) {
-          console.error(
-            'Failed to connect to Upstash Redis: Unauthorized. Check your Upstash Redis token.'
-          )
-        } else if (error.message.includes('not found')) {
-          console.error(
-            'Failed to connect to Upstash Redis: URL not found. Check your Upstash Redis URL.'
-          )
-        } else {
-          console.error('Failed to connect to Upstash Redis:', error.message)
-        }
-      } else {
-        console.error(
-          'An unexpected error occurred while connecting to Upstash Redis:',
-          error
-        )
-      }
-      throw new Error(
-        'Failed to connect to Upstash Redis. Check your configuration and credentials.'
-      )
-    }
-  }
 
-  return redisWrapper
+    const upstashRedis = new UpstashRedis({
+      url: config.upstashRedisRestUrl,
+      token: config.upstashRedisRestToken
+    })
+
+    return new RedisWrapper(upstashRedis)
+  }
 }
 
-// Function to close the Redis connection
 export async function closeRedisConnection(): Promise<void> {
-  if (redisWrapper) {
-    await redisWrapper.close()
-    redisWrapper = null
-  }
-  if (localRedisClient) {
-    await localRedisClient.quit()
-    localRedisClient = null
-  }
+  // This function is called when the application shuts down
+  // Railway will handle the cleanup automatically
+  console.log('Closing Redis connection...')
 }

@@ -158,15 +158,100 @@ bun dev
 
 #### Using Docker
 
+**Quick Start:**
+
 ```bash
-docker compose up -d
+# Start with basic services (app + Redis)
+./scripts/docker-manage.sh start basic
+
+# Start with search engine
+./scripts/docker-manage.sh start search
+
+# Start with full stack (app + Redis + SearXNG + PostgreSQL + Supabase)
+./scripts/docker-manage.sh start full
+```
+
+**Manual Docker Compose:**
+
+```bash
+# Basic setup
+docker compose up -d app redis
+
+# With search engine
+docker compose --profile search up -d
+
+# With authentication
+docker compose --profile auth up -d
+
+# With reverse proxy
+docker compose --profile proxy up -d
+
+# Full stack
+docker compose --profile search --profile auth --profile proxy up -d
+```
+
+**Docker Management:**
+
+```bash
+# View all available commands
+./scripts/docker-manage.sh help
+
+# Check service status
+./scripts/docker-manage.sh status
+
+# View logs
+./scripts/docker-manage.sh logs app
+
+# Health check
+./scripts/docker-manage.sh health
+
+# Backup data
+./scripts/docker-manage.sh backup
+
+# Clean up
+./scripts/docker-manage.sh clean
 ```
 
 Visit http://localhost:3000 in your browser.
 
 ## 🌐 Deploy
 
-Host your own live version of Morphic with Vercel, Cloudflare Pages, or Docker.
+Host your own live version of Bulldozer Search with Railway, Vercel, Cloudflare Pages, or Docker.
+
+### Railway (Recommended)
+
+Railway provides the easiest deployment experience with automatic scaling and Redis support.
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new?template=https://github.com/your-username/bulldozer-search)
+
+**Quick Deploy:**
+
+1. Fork this repository
+2. Click the Railway button above
+3. Add your environment variables
+4. Deploy!
+
+**Manual Deploy:**
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Initialize project
+railway init
+
+# Add environment variables
+railway variables set OPENAI_API_KEY=your_key_here
+railway variables set TAVILY_API_KEY=your_key_here
+
+# Deploy
+railway up
+```
+
+See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for detailed instructions.
 
 ### Vercel
 

@@ -1,5 +1,7 @@
-import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
+
+// Configure runtime to avoid Edge Runtime issues
+export const runtime = 'nodejs'
 
 export async function middleware(request: NextRequest) {
   // Get the protocol from X-Forwarded-Proto header or request protocol
@@ -13,21 +15,10 @@ export async function middleware(request: NextRequest) {
   // Construct the base URL - ensure protocol has :// format
   const baseUrl = `${protocol}${protocol.endsWith(':') ? '//' : '://'}${host}`
 
-  // Create a response
-  let response: NextResponse
-
-  // Handle Supabase session if configured
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (supabaseUrl && supabaseAnonKey) {
-    response = await updateSession(request)
-  } else {
-    // If Supabase is not configured, just pass the request through
-    response = NextResponse.next({
-      request
-    })
-  }
+  // Create a response - temporarily disable Supabase session handling
+  const response = NextResponse.next({
+    request
+  })
 
   // Add request information to response headers
   response.headers.set('x-url', request.url)

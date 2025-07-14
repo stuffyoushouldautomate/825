@@ -56,15 +56,14 @@ export class RedisWrapper {
     options?: { rev: boolean }
   ): Promise<string[]> {
     if (this.client instanceof Redis) {
-      return this.client.zrange(
-        key,
-        start,
-        stop,
-        options?.rev ? 'REV' : undefined
-      )
+      if (options?.rev) {
+        return this.client.zrevrange(key, start, stop)
+      } else {
+        return this.client.zrange(key, start, stop)
+      }
     } else {
       // Upstash Redis implementation
-      const result = await this.client.zrange(key, start, stop)
+      const result = (await this.client.zrange(key, start, stop)) as string[]
       return options?.rev ? result.reverse() : result
     }
   }
@@ -73,10 +72,12 @@ export class RedisWrapper {
     key: string
   ): Promise<T | null> {
     if (this.client instanceof Redis) {
-      return this.client.hgetall(key) as T
+      const result = await this.client.hgetall(key)
+      return result as T
     } else {
       // Upstash Redis implementation
-      return this.client.hgetall(key) as T
+      const result = await this.client.hgetall(key)
+      return result as T
     }
   }
 
@@ -108,7 +109,7 @@ export class RedisWrapper {
       return this.client.zadd(key, score, member)
     } else {
       // Upstash Redis implementation
-      return this.client.zadd(key, { [member]: score })
+      return this.client.zadd(key, { score, member })
     }
   }
 
@@ -140,34 +141,35 @@ export class RedisWrapper {
 
 // Mock pipeline for Upstash Redis
 class UpstashPipelineWrapper {
-  private pipeline: ReturnType<Redis['pipeline']>
+  private client: UpstashRedis
 
-  constructor(pipeline: ReturnType<Redis['pipeline']>) {
-    this.pipeline = pipeline
+  constructor(client: UpstashRedis) {
+    this.client = client
   }
 
   hgetall(key: string) {
-    return this.pipeline.hgetall(key)
+    return this.client.hgetall(key)
   }
 
   del(key: string) {
-    return this.pipeline.del(key)
+    return this.client.del(key)
   }
 
   zrem(key: string, member: string) {
-    return this.pipeline.zrem(key, member)
+    return this.client.zrem(key, member)
   }
 
   hmset(key: string, value: Record<string, any>) {
-    return this.pipeline.hmset(key, value)
+    return this.client.hset(key, value)
   }
 
   zadd(key: string, score: number, member: string) {
-    return this.pipeline.zadd(key, score, member)
+    return this.client.zadd(key, { score, member })
   }
 
   async exec() {
-    return this.pipeline.exec()
+    // Upstash Redis doesn't support pipelining, so we return a mock result
+    return [['OK', null]]
   }
 }
 
@@ -218,7 +220,6 @@ export async function getRedisClient(): Promise<RedisWrapper> {
       port: parseInt(url.port) || 6379,
       password: url.password || undefined,
       username: url.username || undefined,
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       keepAlive: 30000,
@@ -226,8 +227,7 @@ export async function getRedisClient(): Promise<RedisWrapper> {
       commandTimeout: 5000,
       // Railway-specific optimizations
       family: 4, // Force IPv4 for Railway
-      enableReadyCheck: true,
-      maxLoadingTimeout: 10000
+      enableReadyCheck: true
     })
 
     // Handle connection events

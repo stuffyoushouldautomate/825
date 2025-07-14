@@ -24,6 +24,12 @@ export async function createClient() {
           }
         },
       },
+      // Disable realtime to avoid Edge Runtime issues
+      realtime: {
+        params: {
+          eventsPerSecond: 0
+        }
+      }
     }
   )
 }

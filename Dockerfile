@@ -12,6 +12,10 @@ COPY . .
 RUN bun next telemetry disable
 RUN bun run build
 
+# Verify build output
+RUN ls -la .next/
+RUN ls -la app/
+
 # Runtime stage
 FROM oven/bun:1.2.12 AS runner
 WORKDIR /app
@@ -55,4 +59,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Start production server
-CMD ["bun", "start", "-H", "0.0.0.0", "-p", "3000"]
+CMD sh -c "node .next/standalone/server.js -p $PORT"

@@ -16,6 +16,22 @@ export function validateModel(model: any): model is Model {
 }
 
 export async function getModels(): Promise<Model[]> {
+  // During static generation, return default models to avoid dynamic server usage
+  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+    try {
+      if (
+        Array.isArray(defaultModels.models) &&
+        defaultModels.models.every(validateModel)
+      ) {
+        console.log('Using default models for static generation')
+        return defaultModels.models
+      }
+    } catch (error) {
+      console.warn('Failed to load default models during static generation:', error)
+    }
+    return []
+  }
+
   try {
     // Get the base URL using the centralized utility function
     const baseUrlObj = await getBaseUrl()

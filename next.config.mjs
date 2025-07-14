@@ -2,10 +2,10 @@
 const nextConfig = {
   // Railway-specific optimizations
   output: 'standalone',
-  experimental: {
-    // Enable server components
-    serverComponentsExternalPackages: ['@upstash/redis']
-  },
+  // Server external packages
+  serverExternalPackages: ['@upstash/redis'],
+
+
 
   // Image optimization
   images: {

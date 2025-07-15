@@ -54,6 +54,10 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# SigNoz telemetry environment variables
+ENV ENABLE_TELEMETRY=true
+ENV SIGNOZ_ENDPOINT=http://localhost:4318/v1/traces
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1

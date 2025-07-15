@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import type { Metadata, Viewport } from 'next'
 import { Inter as FontSans } from 'next/font/google'
+import { TriggerProvider } from '@trigger.dev/react'
 import './globals.css'
 
 const fontSans = FontSans({
@@ -74,17 +75,19 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <CommandPalette />
-          <SidebarProvider defaultOpen>
-            <AppSidebar />
-            <div className="flex flex-col flex-1">
-              <Header user={user} />
-              <main className="flex flex-1 min-h-0">
-                <ArtifactRoot>{children}</ArtifactRoot>
-              </main>
-            </div>
-          </SidebarProvider>
-          <Toaster />
+          <TriggerProvider>
+            <CommandPalette />
+            <SidebarProvider defaultOpen>
+              <AppSidebar />
+              <div className="flex flex-col flex-1">
+                <Header user={user} />
+                <main className="flex flex-1 min-h-0">
+                  <ArtifactRoot>{children}</ArtifactRoot>
+                </main>
+              </div>
+            </SidebarProvider>
+            <Toaster />
+          </TriggerProvider>
         </ThemeProvider>
       </body>
     </html>

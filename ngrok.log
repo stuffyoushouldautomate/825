@@ -1,0 +1,28 @@
+t=2025-07-15T10:42:36-0500 lvl=info msg="no configuration paths supplied"
+t=2025-07-15T10:42:36-0500 lvl=info msg="using configuration at default config path" path="/Users/jeremyharris/Library/Application Support/ngrok/ngrok.yml"
+t=2025-07-15T10:42:36-0500 lvl=info msg="open config file" path="/Users/jeremyharris/Library/Application Support/ngrok/ngrok.yml" err=nil
+t=2025-07-15T10:42:36-0500 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2025-07-15T10:42:36-0500 lvl=info msg="client session established" obj=tunnels.session
+t=2025-07-15T10:42:36-0500 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-07-15T10:42:36-0500 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:3000 url=https://a3f6b66b3eea.ngrok-free.app
+t=2025-07-15T10:43:27-0500 lvl=info msg="join connections" obj=join id=e95efe79403d l=127.0.0.1:3000 r=162.220.234.61:56890
+t=2025-07-15T10:44:31-0500 lvl=info msg="join connections" obj=join id=a560a2e65852 l=127.0.0.1:3000 r=[2600:1008:a031:8218:f061:3617:c013:610c]:57009
+t=2025-07-15T10:44:34-0500 lvl=info msg="join connections" obj=join id=a600f0fec27c l=127.0.0.1:3000 r=[2600:1008:a031:8218:f061:3617:c013:610c]:57029
+t=2025-07-15T10:52:02-0500 lvl=info msg="join connections" obj=join id=d3837c3eeb60 l=127.0.0.1:3000 r=162.220.234.61:58252
+t=2025-07-15T10:52:09-0500 lvl=info msg="join connections" obj=join id=a7bc53607bb9 l=127.0.0.1:3000 r=[2600:1008:a031:8218:f061:3617:c013:610c]:57784
+t=2025-07-15T10:52:43-0500 lvl=info msg="join connections" obj=join id=599cd868fbe5 l=127.0.0.1:3000 r=[2600:1008:a031:8218:f061:3617:c013:610c]:57826
+t=2025-07-15T15:24:49-0500 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=0d556b9156d9 clientid=c838ee35197ce9e3c36322ed14a00d47
+t=2025-07-15T15:24:50-0500 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=b83a331d5cb7 err="session closed"
+t=2025-07-15T15:24:50-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T15:24:50-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T15:24:51-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T15:24:54-0500 lvl=info msg="client session established" obj=tunnels.session
+t=2025-07-15T15:24:54-0500 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2025-07-15T16:17:12-0500 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=66e1dceca55f clientid=c838ee35197ce9e3c36322ed14a00d47
+t=2025-07-15T16:17:12-0500 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=b83a331d5cb7 err="session closed"
+t=2025-07-15T16:17:12-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T16:17:12-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T16:17:13-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T16:17:15-0500 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2025-07-15T16:17:21-0500 lvl=info msg="client session established" obj=tunnels.session
+t=2025-07-15T16:17:21-0500 lvl=info msg="tunnel session started" obj=tunnels.session

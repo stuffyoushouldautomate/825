@@ -1,8 +1,8 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   // No-op middleware: all auth logic is now in server components or API routes
-  return Response.next()
+  return NextResponse.next()
 }
 
 export const config = {

@@ -3,7 +3,14 @@ const nextConfig = {
   // Railway-specific optimizations
   output: 'standalone',
   // Server external packages
-  serverExternalPackages: ['@upstash/redis'],
+  serverExternalPackages: [
+    '@upstash/redis',
+    '@opentelemetry/auto-instrumentations-node',
+    '@opentelemetry/exporter-otlp-http',
+    '@opentelemetry/sdk-node',
+    '@opentelemetry/resources',
+    '@opentelemetry/semantic-conventions'
+  ],
 
 
 

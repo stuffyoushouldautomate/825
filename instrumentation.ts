@@ -1,10 +1,11 @@
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-otlp-http'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { Resource } from '@opentelemetry/resources'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 
 // Only run instrumentation in production or when explicitly enabled
-if (process.env.NODE_ENV === 'production' || process.env.ENABLE_TELEMETRY === 'true') {
+if (false && (process.env.NODE_ENV === 'production' || process.env.ENABLE_TELEMETRY === 'true')) {
   const sdk = new NodeSDK({
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: 'bulldozer-search',

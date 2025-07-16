@@ -160,6 +160,7 @@ railway up
 
 **Vercel**
 
+<<<<<<< HEAD
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/bulldozer-search)
 
 **Docker**
@@ -179,6 +180,9 @@ http://localhost:3000
 ```
 
 Try sample queries:
+=======
+The default model configuration is located at `public/config/models.json`. For Docker deployment, you can create `models.json` alongside `.env.local` to override the default configuration.
+>>>>>>> 325f071 (Update README.md: Remove Vercel and Docker deployment sections for clarity and streamline documentation)
 
 - “OSHA violations for Turner Construction”
 - “Recent NLRB filings in NYC”
@@ -189,4 +193,23 @@ Try sample queries:
 
 ### ✅ You're Ready!
 
+<<<<<<< HEAD
 You now have a running version of **Bulldozer Search**.
+=======
+1. Open your browser settings.
+2. Navigate to the search engine settings section.
+3. Select "Manage search engines and site search".
+4. Under "Site search", click on "Add".
+5. Fill in the fields as follows:
+   - **Search engine**: Morphic
+   - **Shortcut**: morphic
+   - **URL with %s in place of query**:
+6. Click "Add" to save the new search engine.
+7. Find "Morphic" in the list of site search, click on the three dots next to it, and select "Make default".
+
+This will allow you to use Morphic as your default search engine in the browser.
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+>>>>>>> 325f071 (Update README.md: Remove Vercel and Docker deployment sections for clarity and streamline documentation)

@@ -190,5 +190,3 @@ Try sample queries:
 ### ✅ You're Ready!
 
 You now have a running version of **Bulldozer Search**.
-
-For help, issues, or contributions, check the [Contributing Guide](CONTRIBUTING.md).

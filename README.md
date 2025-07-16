@@ -1,8 +1,6 @@
 # Bulldozer Search
 
-Local 825's AI-powered construction industry research and analysis platform.
-
-![capture](/public/screenshot-2025-05-04.png)
+AI-powered construction industry research and analysis platform.
 
 ## 🗂️ Overview
 

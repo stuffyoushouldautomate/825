@@ -19,7 +19,10 @@ function LiveClock() {
     return () => clearInterval(interval)
   }, [])
   return (
-    <span className="font-mono text-xs text-muted-foreground">
+    <span
+      className="font-mono text-xs text-muted-foreground"
+      suppressHydrationWarning
+    >
       {time.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',

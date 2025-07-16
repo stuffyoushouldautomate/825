@@ -72,7 +72,9 @@ export function SignUpForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/oauth`
+        redirectTo: process.env.NODE_ENV === 'production' 
+          ? 'https://825chat.datapilotplus.com/auth/oauth'
+          : `${window.location.origin}/auth/oauth`
       }
     })
 

@@ -50,7 +50,10 @@ export function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/oauth`
+        redirectTo:
+          process.env.NODE_ENV === 'production'
+            ? 'https://825chat.datapilotplus.com/auth/oauth'
+            : `${window.location.origin}/auth/oauth`
       }
     })
 
@@ -75,7 +78,8 @@ export function LoginForm() {
           Welcome to Bulldozer Search
         </CardTitle>
         <CardDescription className="text-center">
-          Sign in to access Local 825&apos;s construction industry research platform
+          Sign in to access Local 825&apos;s construction industry research
+          platform
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

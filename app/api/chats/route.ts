@@ -18,9 +18,17 @@ export async function GET(request: NextRequest) {
   const offset = parseInt(searchParams.get('offset') || '0', 10)
   const limit = parseInt(searchParams.get('limit') || '20', 10)
 
-  const userId = await getCurrentUserId()
-
   try {
+    // Try to get current user, but don't fail if not authenticated
+    let userId: string | null = null
+    try {
+      userId = await getCurrentUserId()
+    } catch (error) {
+      // User not authenticated, return empty chat list
+      console.log('User not authenticated, returning empty chat list')
+      return NextResponse.json<ChatPageResponse>({ chats: [], nextOffset: null })
+    }
+
     const result = await getChatsPage(userId, limit, offset)
     return NextResponse.json<ChatPageResponse>(result)
   } catch (error) {

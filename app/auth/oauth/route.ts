@@ -19,15 +19,24 @@ export async function GET(request: Request) {
         avatar_url: data.user.user_metadata?.avatar_url
       })
 
-      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      // Handle the specific callback URL for production
+      const isProduction = process.env.NODE_ENV === 'production'
       const isLocalEnv = process.env.NODE_ENV === 'development'
+      
       if (isLocalEnv) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+        // Local development - use origin
         return NextResponse.redirect(`${origin}${next}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+      } else if (isProduction) {
+        // Production - redirect to the specific domain
+        return NextResponse.redirect(`https://825chat.datapilotplus.com${next}`)
       } else {
-        return NextResponse.redirect(`${origin}${next}`)
+        // Other environments - use forwarded host if available
+        const forwardedHost = request.headers.get('x-forwarded-host')
+        if (forwardedHost) {
+          return NextResponse.redirect(`https://${forwardedHost}${next}`)
+        } else {
+          return NextResponse.redirect(`${origin}${next}`)
+        }
       }
     }
   }

@@ -2,6 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 
+// Temporarily disable telemetry since it's not properly configured
+const Telemetry = {
+  trace: (name: string, fn: () => Promise<any>, attributes?: Record<string, any>) => fn(),
+  addAttributes: (attributes: Record<string, any>) => {},
+  recordEvent: (name: string, attributes?: Record<string, any>) => {},
+}
+
 export interface Company {
   id: string
   name: string

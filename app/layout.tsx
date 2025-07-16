@@ -75,7 +75,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TriggerProvider>
+          <TriggerProvider publicApiKey={process.env.NEXT_PUBLIC_TRIGGER_API_KEY!}>
             <CommandPalette />
             <SidebarProvider defaultOpen>
               <AppSidebar />

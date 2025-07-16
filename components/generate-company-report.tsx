@@ -10,7 +10,7 @@ import { FileSearch } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { GenerateCompanyReportModal } from './generate-company-report-modal'
+
 import { ReportGenerationLoading } from './report-generation-loading'
 import { ReportSidebar } from './report-sidebar'
 
@@ -187,12 +187,7 @@ Provide comprehensive factual analysis with strategic insights. Use markdown for
         <span>Generate Company Report</span>
       </Button>
 
-      <GenerateCompanyReportModal
-        open={open}
-        onOpenChange={setOpen}
-        onGenerate={handleGenerate}
-        onViewReport={handleViewReport}
-      />
+
 
       {/* Loading Screen */}
       {isGenerating && currentReport && (
